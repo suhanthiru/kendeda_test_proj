@@ -2,10 +2,10 @@ import sys
 import json
 import psycopg2 # The industry-standard PostgreSQL adapter for Python
 
-# ---------------------------------------------------------
+# ----------------------------------------------------------
 # DATABASE CONFIGURATION
 # (In production, these are loaded securely via Environment Variables)
-# ---------------------------------------------------------
+# ----------------------------------------------------------
 DB_CONFIG = {
     "dbname": "kendeda_iot_db",
     "user": "pipeline_service_account",
@@ -22,7 +22,7 @@ def boot_sequence_load_registry():
     Connects to the database at startup and caches the metric_registry.
     This prevents the script from having to query the DB 10,000 times a second.
     """
-    print("🔄 Booting up: Connecting to PostgreSQL to fetch the Sensor Registry...")
+    print("Booting up: Connecting to PostgreSQL to fetch the Sensor Registry...")
     try:
         conn = psycopg2.connect(**DB_CONFIG)
         cursor = conn.cursor()
@@ -35,12 +35,12 @@ def boot_sequence_load_registry():
         for metric_name, class_name in rows:
             DYNAMIC_METRIC_MAP[metric_name] = class_name
             
-        print(f"✅ Boot successful. Cached {len(DYNAMIC_METRIC_MAP)} registered metrics.")
+        print(f"Boot successful. Cached {len(DYNAMIC_METRIC_MAP)} registered metrics.")
         
         cursor.close()
         conn.close()
     except Exception as e:
-        print(f"❌ CRITICAL BOOT FAILURE: Could not connect to database. {e}")
+        print(f"CRITICAL BOOT FAILURE: Could not connect to database. {e}")
         sys.exit(1)
 
 def normalize_payload(raw_json_string):
@@ -92,7 +92,7 @@ if __name__ == "__main__":
     # Step 1: Execute the DB pull before any data starts flowing
     boot_sequence_load_registry()
     
-    print("🟢 Normalizer Engine online. Listening to data stream...\n")
+    print("Normalizer Engine online. Listening to data stream...\n")
     try:
         # Step 2: Continuously listen to the live stream
         for line in sys.stdin:
@@ -105,9 +105,9 @@ if __name__ == "__main__":
             # Print output (or pipe to the next database insertion script)
             for row in db_ready_rows:
                 # Add a bright visual warning flag if the data had to be quarantined
-                q_flag = "⚠️ QUARANTINE" if row['is_quarantined'] else "✅ VERIFIED "
+                q_flag = "⚠️ QUARANTINE" if row['is_quarantined'] else "VERIFIED "
                 
                 print(f"{q_flag} -> [{row['timestamp']}] | ID: {row['sensor_id']:<18} | TYPE: {row['data_class']:<20} | METRIC: {row['measurement_name']:<35} | VAL: {row['reading_value']}")
                 
     except KeyboardInterrupt:
-        print("\n🛑 Normalizer shut down safely.")
+        print("\n Normalizer shut down safely.")
