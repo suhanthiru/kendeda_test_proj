@@ -1,0 +1,14 @@
+{
+  "Servers": {
+    "1": {
+      "Name": "Kendeda TimescaleDB",
+      "Group": "Servers",
+      "Host": "timescaledb",
+      "Port": 5432,
+      "MaintenanceDB": "kendeda_iot_db",
+      "Username": "pipeline_service_account",
+      "SSLMode": "prefer",
+      "Comment": "Auto-registered by docker-compose. Password: secure_password_here"
+    }
+  }
+}

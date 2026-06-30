@@ -1,0 +1,50 @@
+services:
+  timescaledb:
+    image: timescale/timescaledb:latest-pg16
+    container_name: kendeda_timescaledb
+    environment:
+      POSTGRES_DB: kendeda_iot_db
+      POSTGRES_USER: pipeline_service_account
+      POSTGRES_PASSWORD: secure_password_here
+    ports:
+      - "5432:5432"
+    volumes:
+      # Named volume persists the data across container restarts.
+      - kendeda_pgdata:/var/lib/postgresql/data
+      # Anything in this folder runs once, in alphabetical order, on FIRST boot
+      # of a fresh volume: 001_schema.sql then 002_seed.sql. This compose file
+      # lives in sql/ alongside them, so mount the current directory.
+      - .:/docker-entrypoint-initdb.d
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U pipeline_service_account -d kendeda_iot_db"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+  # Browser-based DB viewer at http://localhost:5050
+  pgadmin:
+    image: dpage/pgadmin4:latest
+    container_name: kendeda_pgadmin
+    environment:
+      # Login for pgAdmin itself (only used if server mode is on).
+      PGADMIN_DEFAULT_EMAIL: admin@kendeda.com
+      PGADMIN_DEFAULT_PASSWORD: admin
+      # Desktop mode: skip pgAdmin's own login + master-password prompts so the
+      # browser opens straight into the UI for local development.
+      PGADMIN_CONFIG_SERVER_MODE: "False"
+      PGADMIN_CONFIG_MASTER_PASSWORD_REQUIRED: "False"
+    ports:
+      - "5050:80"
+    volumes:
+      # Pre-registers the TimescaleDB connection so it appears in the tree on
+      # first launch — no manual "Add Server" needed. Inside the Docker network
+      # the database is reachable by its SERVICE name (timescaledb), not localhost.
+      - ./pgadmin/servers.json:/pgadmin4/servers.json
+      - kendeda_pgadmin_data:/var/lib/pgadmin
+    depends_on:
+      timescaledb:
+        condition: service_healthy
+
+volumes:
+  kendeda_pgdata:
+  kendeda_pgadmin_data:
