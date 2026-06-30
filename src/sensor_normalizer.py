@@ -2,10 +2,10 @@ import sys
 import json
 import psycopg2 # The industry-standard PostgreSQL adapter for Python
 
-# ---------------------------------------------------------
+# ----------------------------------------------------------
 # DATABASE CONFIGURATION
 # (In production, these are loaded securely via Environment Variables)
-# ---------------------------------------------------------
+# ----------------------------------------------------------
 DB_CONFIG = {
     "dbname": "kendeda_iot_db",
     "user": "pipeline_service_account",
